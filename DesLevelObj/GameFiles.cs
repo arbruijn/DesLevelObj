@@ -12,53 +12,58 @@ namespace DesLevelObj
         public byte[] pal;
         public Color[] pal32;
         public Classic.Version version;
+        public string dir;
+        public D3Level.TableData tableData;
+        public D3Level.Hog hog3;
+        public string curPalName;
 
         public GameFiles()
         {
         }
 
-        public GameFiles(string pigFilename)
+        public GameFiles(string dir)
         {
-            if (!Init(pigFilename))
-                throw new Exception("Descent files not found in " + Path.GetDirectoryName(pigFilename));
+            if (!Init(dir))
+                throw new Exception("Descent files not found in " + dir);
         }
 
-        public bool Init(string pigFilename)
+        public bool Init(string dir)
         {
-            var dir = Path.GetDirectoryName(pigFilename); // args.Length >= 1 ? args[0] : "";
             version = default(Classic.Version);
-            string pigName = null;
-            string palName = null;
             string hogName = null;
 
             if (File.Exists(Path.Combine(dir, "descent2.hog")) && File.Exists(Path.Combine(dir, "descent2.ham")) && File.Exists(Path.Combine(dir, "groupa.pig")))
             {
                 version = Classic.Version.D2;
                 hogName = "descent2.hog";
-                pigName = "groupa.pig";
-                palName = "groupa.256";
             }
             else if (File.Exists(Path.Combine(dir, "descent.hog")) && File.Exists(Path.Combine(dir, "descent.pig")))
             {
                 version = Classic.Version.D1;
                 hogName = "descent.hog";
-                pigName = "descent.pig";
-                palName = "palette.256";
             }
-            if (version == Classic.Version.UNKNOWN)
+            else if (File.Exists(Path.Combine(dir, "d3.hog")))
+            {
+                version = Classic.Version.D3;
+                this.dir = dir;
+                hog = null;
+                pig = null;
+                hog3 = D3Level.Hog.OpenHog(Path.Combine(dir, "d3.hog"));
+                using (var s = hog3.Open("Table.gam"))
+                    tableData = D3Level.TableData.Read(s);
+                return true;
+            }
+            else
             {
                 return false;
             }
 
+            tableData = null;
+            hog3 = null;
+
+            this.dir = dir;
             hog = new Hog(Path.Combine(dir, hogName));
 
-            byte[] vgaPal = hog.ItemData(palName);
-            pal = ClassicLoader.VgaPalConv(vgaPal);
-            pal32 = new Color[256];
-            for (int i = 0; i < 256; i++)
-                pal32[i] = new Color(pal[i * 3], pal[i * 3 + 1], pal[i * 3 + 2], 255);
-
-            pig = new Pig(Path.Combine(dir, pigName));
             if (version == Classic.Version.D2)
             {
                 byte[] bytes = File.ReadAllBytes(Path.Combine(dir, "descent2.ham"));
@@ -67,9 +72,32 @@ namespace DesLevelObj
             }
             else
             {
+                LoadPalette("palette.256");
+                pig = new Pig(Path.Combine(dir, "descent.pig"));
                 pig.ReadTableData(out data);
             }
             return true;
+        }
+
+        private void LoadPalette(string palName)
+        {
+            byte[] vgaPal = hog.ItemData(palName);
+            pal = ClassicLoader.VgaPalConv(vgaPal);
+            pal32 = new Color[256];
+            for (int i = 0; i < 256; i++)
+                pal32[i] = new Color(pal[i * 3], pal[i * 3 + 1], pal[i * 3 + 2], 255);
+        }
+
+        public void SelectPalette(string name)
+        {
+            if (version != Classic.Version.D2)
+                return;
+            name = name.ToLowerInvariant();
+            if (name == curPalName)
+                return;
+            curPalName = name;
+            LoadPalette(name);
+            pig = new Pig(Path.Combine(dir, Path.ChangeExtension(name, ".pig")));
         }
     }
 }

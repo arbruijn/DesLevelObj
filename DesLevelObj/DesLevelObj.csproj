@@ -52,6 +52,8 @@
     <Compile Include="ClassicLoader.cs" />
     <Compile Include="ClassicLevel.cs" />
     <Compile Include="Color.cs" />
+    <Compile Include="D3Level.cs" />
+    <Compile Include="D3LevelToObj.cs" />
     <Compile Include="GameFiles.cs" />
     <Compile Include="LevelToObj.cs" />
     <Compile Include="MainForm.cs">
@@ -68,6 +70,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SubStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

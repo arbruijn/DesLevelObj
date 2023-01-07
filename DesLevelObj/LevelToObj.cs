@@ -27,9 +27,6 @@ namespace DesLevelObj
 
         public static void WritePigBitmapToPng(string fn, byte[] pal, Pig pig, PigBitmap bmp)
         {
-            if (File.Exists(fn))
-                return;
-
             int w = bmp.width, h = bmp.height;
             byte[] img = new byte[w * h * 4];
             int dstOfs = 0;
@@ -93,9 +90,19 @@ namespace DesLevelObj
                         f.WriteLine("vt " + (uvl.u.ToFloat()) + " " + (-uvl.v.ToFloat()));
                 foreach (var tex in lvlTex)
                 {
-                    var bmpIdx = gameFiles.data.Textures[tex].index - 1;
-                    var bmp = gameFiles.pig.bitmaps[bmpIdx];
-                    var matName = bmp.name;
+                    PigBitmap bmp;
+                    string matName;
+                    if (tex < gameFiles.data.Textures.Length)
+                    {
+                        var bmpIdx = gameFiles.data.Textures[tex].index - 1;
+                        bmp = gameFiles.pig.bitmaps[bmpIdx];
+                        matName = bmp.name;
+                    }
+                    else
+                    {
+                        bmp = null;
+                        matName = "texture" + tex;
+                    }
                     fmtl.WriteLine("newmtl " + matName);
                     fmtl.WriteLine("illum 2");
                     fmtl.WriteLine("Kd 1.00 1.00 1.00");
@@ -103,7 +110,7 @@ namespace DesLevelObj
                     fmtl.WriteLine("Ks 0.00 0.00 0.00");
                     fmtl.WriteLine("d 1.0");
                     fmtl.WriteLine("map_Kd " + matName + ".png");
-                    if (dumpTex)
+                    if (dumpTex && bmp != null)
                         WritePigBitmapToPng(Path.Combine(outDir, matName + ".png"), gameFiles.pal, gameFiles.pig, bmp);
 
                     f.WriteLine("usemtl " + matName);

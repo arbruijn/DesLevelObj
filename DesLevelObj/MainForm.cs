@@ -28,13 +28,17 @@ namespace DesLevelObj
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "Level Files (*.hog;*.rdl;*.rl2)|*.hog;*.rdl;*.rl2|All files (*.*)|*.*";
+                openFileDialog.Filter = "Level Files (*.hog;*.rdl;*.rl2;*.mn3;*.d3l)|*.hog;*.rdl;*.rl2;*.mn3;*.d3l|All files (*.*)|*.*";
                 var cur = txtLevelFile.Text;
                 if (cur != "")
                 {
                     if (!Directory.Exists(cur))
                         cur = Path.GetDirectoryName(cur);
                     openFileDialog.InitialDirectory = cur;
+                }
+                else if (gameFiles != null)
+                {
+                    openFileDialog.InitialDirectory = gameFiles.dir;
                 }
                 openFileDialog.RestoreDirectory = true;
 
@@ -52,9 +56,10 @@ namespace DesLevelObj
             {
                 using (var f = File.OpenRead(filename))
                 {
-                    var buf = new byte[3];
+                    var buf = new byte[4];
                     f.Read(buf, 0, buf.Length);
-                    return buf[0] == 'D' && buf[1] == 'H' && buf[2] == 'F';
+                    return (buf[0] == 'D' && buf[1] == 'H' && buf[2] == 'F') ||
+                        (buf[0] == 'H' && buf[1] == 'O' && buf[2] =='G' && buf[3] == '2');
                 }
             }
             catch (Exception)
@@ -67,7 +72,8 @@ namespace DesLevelObj
         {
             return hog.items.Select(item => item.name).Where(name =>
                 name.EndsWith(".rdl", StringComparison.OrdinalIgnoreCase) ||
-                name.EndsWith(".rl2", StringComparison.OrdinalIgnoreCase));
+                name.EndsWith(".rl2", StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith(".d3l", StringComparison.OrdinalIgnoreCase));
         }
 
         private void LevelFileUpdate()
@@ -85,11 +91,14 @@ namespace DesLevelObj
             //cmbLevel.Text = cmbLevel.SelectedValue != null ? cmbLevel.SelectedValue.ToString() : "";
         }
 
-        private void PigFileUpdate()
+        private void GameDirUpdate()
         {
+            if (gameFiles != null && gameFiles.dir == txtGameDir.Text)
+                return;
             try
             {
-                gameFiles = txtPigFile.Text == "" ? null : new GameFiles(txtPigFile.Text);
+                gameFiles = txtGameDir.Text == "" ? null : new GameFiles(txtGameDir.Text);
+                Log("Loaded game data for Descent " + (int)gameFiles.version);
             }
             catch (Exception e)
             {
@@ -97,9 +106,15 @@ namespace DesLevelObj
             }
         }
 
+        private void ConvertD3(Stream s, string dest, bool dumpTex)
+        {
+            var lvl = D3Level.Level.Read(new BinaryReader(s));
+            s.Close();
+            D3LevelToObj.Convert(gameFiles, lvl, dest, dumpTex);
+        }
+
         private void Convert(string filename, string level, bool dumpTex)
         {
-            var lvl = new ClassicLevel();
             Stream s;
             if (IsHogFile(filename))
             {
@@ -113,13 +128,25 @@ namespace DesLevelObj
                 s = File.OpenRead(filename);
                 level = Path.GetFileName(filename);
             }
-            lvl.Read(new BinaryReader(s));
-            s.Close();
+
             var outDir = txtOutDir.Text;
             var dest = Path.Combine(
                     outDir != "" ? outDir : Path.GetDirectoryName(filename),
                     Path.GetFileNameWithoutExtension(level) + ".obj");
-            LevelToObj.Convert(gameFiles, lvl, dest, dumpTex);
+
+            if (filename.EndsWith(".d3l", StringComparison.OrdinalIgnoreCase) ||
+                level.EndsWith(".d3l", StringComparison.OrdinalIgnoreCase))
+            {
+                ConvertD3(s, dest, dumpTex);
+            }
+            else
+            {
+                var lvl = new ClassicLevel();
+                lvl.Read(new BinaryReader(s));
+                s.Close();
+                gameFiles.SelectPalette(lvl.palette);
+                LevelToObj.Convert(gameFiles, lvl, dest, dumpTex);
+            }
             Log("Converted level to " + dest);
         }
 
@@ -128,24 +155,21 @@ namespace DesLevelObj
             txtLog.AppendText(message + "\r\n");
         }
 
-        private void btnPigFile_Click(object sender, EventArgs e)
+        private void btnGameDir_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "Pig Files (*.pig)|*.pig|All files (*.*)|*.*";
-                var cur = txtPigFile.Text;
+                openFileDialog.Filter = "Main hog (descent.hog;descent2.hog;descent3.hog)|descent.hog;descent2.hog;d3.hog|All files (*.*)|*.*";
+                var cur = txtGameDir.Text;
                 if (cur != "")
                 {
-                    if (!Directory.Exists(cur))
-                        cur = Path.GetDirectoryName(cur);
                     openFileDialog.InitialDirectory = cur;
                 }
                 openFileDialog.RestoreDirectory = true;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    txtPigFile.Text = openFileDialog.FileName;
-                    //PigFileUpdate();
+                    txtGameDir.Text = Path.GetDirectoryName(openFileDialog.FileName);
                 }
             }
         }
@@ -154,7 +178,7 @@ namespace DesLevelObj
         {
             if (gameFiles == null || gameFiles.version == Classic.Version.UNKNOWN)
             {
-                Log("Cannot convert, missing pig file");
+                Log("Cannot convert, missing game folder");
                 return;
             }
             Convert(txtLevelFile.Text, cmbLevel.SelectedItem?.ToString(), chkTexPng.Checked);
@@ -184,7 +208,7 @@ namespace DesLevelObj
                 if (key == null)
                     return;
                 updating = true;
-                txtPigFile.Text = (string)key.GetValue("PigFile");
+                txtGameDir.Text = (string)key.GetValue("GameDir");
                 txtLevelFile.Text = (string)key.GetValue("LevelFile");
                 cmbLevel.SelectedItem = (string)key.GetValue("Level");
                 txtOutDir.Text = (string)key.GetValue("OutDir");
@@ -198,7 +222,7 @@ namespace DesLevelObj
             if (updating)
                 return;
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\DesLevelObj");
-            key.SetValue("PigFile", txtPigFile.Text);
+            key.SetValue("GameDir", txtGameDir.Text);
             key.SetValue("LevelFile", txtLevelFile.Text);
             key.SetValue("Level", cmbLevel.SelectedItem?.ToString() ?? "");
             key.SetValue("OutDir", txtOutDir.Text);
@@ -221,10 +245,10 @@ namespace DesLevelObj
             LevelFileUpdate();
         }
 
-        private void txtPigFile_TextChanged(object sender, EventArgs e)
+        private void txtGameDir_TextChanged(object sender, EventArgs e)
         {
             SaveAll();
-            PigFileUpdate();
+            GameDirUpdate();
         }
 
         private void cmbLevel_SelectedIndexChanged(object sender, EventArgs e)

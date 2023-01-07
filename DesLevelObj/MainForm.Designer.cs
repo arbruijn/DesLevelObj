@@ -35,9 +35,9 @@
             this.btnConvert = new System.Windows.Forms.Button();
             this.lblLevel = new System.Windows.Forms.Label();
             this.cmbLevel = new System.Windows.Forms.ComboBox();
-            this.lblPigFile = new System.Windows.Forms.Label();
-            this.txtPigFile = new System.Windows.Forms.TextBox();
-            this.btnPigFile = new System.Windows.Forms.Button();
+            this.lblGameDir = new System.Windows.Forms.Label();
+            this.txtGameDir = new System.Windows.Forms.TextBox();
+            this.btnGameDir = new System.Windows.Forms.Button();
             this.chkTexPng = new System.Windows.Forms.CheckBox();
             this.btnOutDir = new System.Windows.Forms.Button();
             this.txtOutDir = new System.Windows.Forms.TextBox();
@@ -109,32 +109,32 @@
             this.cmbLevel.TabIndex = 7;
             this.cmbLevel.SelectedIndexChanged += new System.EventHandler(this.cmbLevel_SelectedIndexChanged);
             // 
-            // lblPigFile
+            // lblGameDir
             // 
-            this.lblPigFile.AutoSize = true;
-            this.lblPigFile.Location = new System.Drawing.Point(9, 9);
-            this.lblPigFile.Name = "lblPigFile";
-            this.lblPigFile.Size = new System.Drawing.Size(41, 13);
-            this.lblPigFile.TabIndex = 0;
-            this.lblPigFile.Text = "Pig File";
+            this.lblGameDir.AutoSize = true;
+            this.lblGameDir.Location = new System.Drawing.Point(9, 9);
+            this.lblGameDir.Name = "lblGameDir";
+            this.lblGameDir.Size = new System.Drawing.Size(67, 13);
+            this.lblGameDir.TabIndex = 0;
+            this.lblGameDir.Text = "Game Folder";
             // 
-            // txtPigFile
+            // txtGameDir
             // 
-            this.txtPigFile.Location = new System.Drawing.Point(100, 6);
-            this.txtPigFile.Name = "txtPigFile";
-            this.txtPigFile.Size = new System.Drawing.Size(377, 20);
-            this.txtPigFile.TabIndex = 1;
-            this.txtPigFile.TextChanged += new System.EventHandler(this.txtPigFile_TextChanged);
+            this.txtGameDir.Location = new System.Drawing.Point(100, 6);
+            this.txtGameDir.Name = "txtGameDir";
+            this.txtGameDir.Size = new System.Drawing.Size(377, 20);
+            this.txtGameDir.TabIndex = 1;
+            this.txtGameDir.TextChanged += new System.EventHandler(this.txtGameDir_TextChanged);
             // 
-            // btnPigFile
+            // btnGameDir
             // 
-            this.btnPigFile.Location = new System.Drawing.Point(483, 4);
-            this.btnPigFile.Name = "btnPigFile";
-            this.btnPigFile.Size = new System.Drawing.Size(24, 23);
-            this.btnPigFile.TabIndex = 2;
-            this.btnPigFile.Text = "...";
-            this.btnPigFile.UseVisualStyleBackColor = true;
-            this.btnPigFile.Click += new System.EventHandler(this.btnPigFile_Click);
+            this.btnGameDir.Location = new System.Drawing.Point(483, 4);
+            this.btnGameDir.Name = "btnGameDir";
+            this.btnGameDir.Size = new System.Drawing.Size(24, 23);
+            this.btnGameDir.TabIndex = 2;
+            this.btnGameDir.Text = "...";
+            this.btnGameDir.UseVisualStyleBackColor = true;
+            this.btnGameDir.Click += new System.EventHandler(this.btnGameDir_Click);
             // 
             // chkTexPng
             // 
@@ -183,9 +183,9 @@
             this.Controls.Add(this.txtOutDir);
             this.Controls.Add(this.lblOutDir);
             this.Controls.Add(this.chkTexPng);
-            this.Controls.Add(this.btnPigFile);
-            this.Controls.Add(this.txtPigFile);
-            this.Controls.Add(this.lblPigFile);
+            this.Controls.Add(this.btnGameDir);
+            this.Controls.Add(this.txtGameDir);
+            this.Controls.Add(this.lblGameDir);
             this.Controls.Add(this.cmbLevel);
             this.Controls.Add(this.lblLevel);
             this.Controls.Add(this.btnConvert);
@@ -209,9 +209,9 @@
         private System.Windows.Forms.Button btnConvert;
         private System.Windows.Forms.Label lblLevel;
         private System.Windows.Forms.ComboBox cmbLevel;
-        private System.Windows.Forms.Label lblPigFile;
-        private System.Windows.Forms.TextBox txtPigFile;
-        private System.Windows.Forms.Button btnPigFile;
+        private System.Windows.Forms.Label lblGameDir;
+        private System.Windows.Forms.TextBox txtGameDir;
+        private System.Windows.Forms.Button btnGameDir;
         private System.Windows.Forms.CheckBox chkTexPng;
         private System.Windows.Forms.Button btnOutDir;
         private System.Windows.Forms.TextBox txtOutDir;

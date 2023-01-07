@@ -65,6 +65,12 @@ class Bits
 
 public class HogItem
 {
+    public HogItem(string name, int dataSize, int dataOfs)
+    {
+        this.name = name;
+        this.dataSize = dataSize;
+        this.dataOfs = dataOfs;
+    }
     public HogItem(byte[] data, int ofs)
     {
         name = Bits.GetString(data, ofs, 13);
@@ -80,17 +86,38 @@ public class Hog
 {
     public Hog(string filename)
     {
+        items = new List<HogItem>();
+        index = new Dictionary<string, HogItem>(StringComparer.OrdinalIgnoreCase);
         this.filename = filename;
         load(filename);
+    }
+    private void initHog2()
+    {
+        var count = Bits.GetInt32(data, 4);
+        var dataOfs = Bits.GetInt32(data, 8);
+        int ofs = 68;
+        for (int i = 0; i < count; i++)
+        {
+            string name = Bits.GetString(data, ofs, 36);
+            int size = Bits.GetInt32(data, ofs + 40);
+            ofs += 48;
+            HogItem item = new HogItem(name, size, dataOfs);
+            dataOfs += size;
+            items.Add(item);
+            index.Add(item.name, item);
+        }
     }
     private void load(string filename)
     {
         data = File.ReadAllBytes(filename);
         size = data.Length;
+        if (data.Take(4).SequenceEqual(new byte[] { (byte)'H', (byte)'O', (byte)'G', (byte)'2' }))
+        {
+            initHog2();
+            return;
+        }
         if (!data.Take(3).SequenceEqual(new byte[] { (byte)'D', (byte)'H', (byte)'F' }))
             throw new Exception("invalid header");
-        items = new List<HogItem>();
-        index = new Dictionary<string, HogItem>();
         int ofs = 3;
         while (ofs < size)
         {
@@ -297,6 +324,14 @@ static class Ext
         byte b;
         var bs = new List<byte>();
         while ((b = r.ReadByte()) != 0)
+           bs.Add(b);
+        return Encoding.UTF8.GetString(bs.ToArray());
+    }
+    public static string ReadNewlineString(this BinaryReader r)
+    {
+        byte b;
+        var bs = new List<byte>();
+        while ((b = r.ReadByte()) != 10)
            bs.Add(b);
         return Encoding.UTF8.GetString(bs.ToArray());
     }
@@ -601,7 +636,8 @@ public enum Version
 {
     UNKNOWN,
     D1,
-    D2
+    D2,
+    D3
 }
 
 public struct TmapInfo

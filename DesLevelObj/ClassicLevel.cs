@@ -7,10 +7,10 @@ namespace Classic
 {
     static class ClassicLevelExt
     {
-        public static void Read(this Segment[] v, BinaryReader r)
+        public static void Read(this Segment[] v, BinaryReader r, int fileVersion)
         {
             for (int i = 0, l = v.Length; i < l; i++)
-                (v[i] = new Segment()).Read(r);
+                (v[i] = new Segment()).Read(r, fileVersion);
         }
     }
 
@@ -115,6 +115,7 @@ namespace Classic
         public sbyte matcen_num;
         public short value;
         public Fix static_light;
+        public byte s2_flags;
         public Side[] sides;
         public const int NUM_SIDES = 6;
         public static readonly int[,] Side_to_verts = new int[NUM_SIDES,4] {
@@ -135,26 +136,31 @@ namespace Classic
             return children[sidenum] == -1 || sides[sidenum].wall_num != -1;
         }
 
-        public void Read(BinaryReader r)
+        public void Read(BinaryReader r, int fileVersion)
         {
             children = new short[6];
             byte mask = r.ReadByte();
             for (int i = 0; i < 6; i++)
                 children[i] = (mask & (1 << i)) != 0 ? r.ReadInt16() : (short)-1;
             (verts = new short[8]).Read(r);
-            if ((mask & 64) != 0)
+
+            if (fileVersion == 1)
             {
-                r.Read(out special);
-                r.Read(out matcen_num);
-                r.Read(out value);
+                if ((mask & 64) != 0)
+                {
+                    r.Read(out special);
+                    r.Read(out matcen_num);
+                    r.Read(out value);
+                }
+                else
+                {
+                    special = 0;
+                    matcen_num = -1;
+                    value = 0;
+                }
+                static_light.n = r.ReadUInt16() << 4;
             }
-            else
-            {
-                special = 0;
-                matcen_num = -1;
-                value = 0;
-            }
-            static_light.n = r.ReadUInt16() << 4;
+
             byte wall_mask = r.ReadByte();
             sides = new Side[NUM_SIDES];
             for (int sidenum = 0; sidenum < NUM_SIDES; sidenum++)
@@ -181,6 +187,14 @@ namespace Classic
                 }
                 #endif
             }
+        }
+        public void Read2s(BinaryReader r)
+        {
+            r.Read(out special);
+            r.Read(out matcen_num);
+            r.Read(out value);
+            r.Read(out s2_flags);
+            static_light.Read(r);
         }
         public override string ToString()
         {
@@ -234,7 +248,7 @@ namespace Classic
         public vms_vector[] Vertices;
         public Segment[] Segments;
 
-        public void Read(BinaryReader r)
+        public void Read(BinaryReader r, int fileVersion)
         {
             byte version = r.ReadByte();
             if (version != 0)
@@ -242,25 +256,34 @@ namespace Classic
             int Num_vertices = r.ReadInt16();
             int Num_segments = r.ReadInt16();
             (Vertices = new vms_vector[Num_vertices]).Read(r);
-            (Segments = new Segment[Num_segments]).Read(r);
+            (Segments = new Segment[Num_segments]).Read(r, fileVersion);
+            if (fileVersion > 1)
+                foreach (var seg in Segments)
+                    seg.Read2s(r);
         }        
     }
 
     public class ClassicLevel
     {
         public Mine mine;
+        public string palette;
 
         public void Read(BinaryReader r)
         {
             if (r.ReadInt32() != 0x504c564c)
                 throw new Exception("wrong level signature");
-            if (r.ReadInt32() != 1)
-                throw new Exception("wrong level version");
+            var fileVersion = r.ReadInt32();
+            if (fileVersion != 1 && fileVersion != 6)
+                throw new Exception("wrong level version: " + fileVersion);
             int minedata_ofs = r.ReadInt32();
             int gamedata_ofs = r.ReadInt32();
-            int hostagetext_ofs = r.ReadInt32();
+            int hostagetext_ofs = fileVersion < 5 ? r.ReadInt32() : 0;
+            palette = fileVersion > 1 ? r.ReadNewlineString() : "descent";
+            //int explosion_time = version >= 3 ? r.ReadInt32() : 0;
+            //int reactor_strength = version >= 4 ? r.ReadInt32() : -1;
+            //secret level return
             r.BaseStream.Position = minedata_ofs;
-            mine.Read(r);
+            mine.Read(r, fileVersion);
         }
     }
 }
