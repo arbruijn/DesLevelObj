@@ -273,10 +273,12 @@ namespace Classic
             if (r.ReadInt32() != 0x504c564c)
                 throw new Exception("wrong level signature");
             var fileVersion = r.ReadInt32();
-            if (fileVersion != 1 && fileVersion != 6)
+            if (fileVersion > 8)
                 throw new Exception("wrong level version: " + fileVersion);
             int minedata_ofs = r.ReadInt32();
             int gamedata_ofs = r.ReadInt32();
+            if (fileVersion >= 8)
+                r.BaseStream.Position += 7;
             int hostagetext_ofs = fileVersion < 5 ? r.ReadInt32() : 0;
             palette = fileVersion > 1 ? r.ReadNewlineString() : "descent";
             //int explosion_time = version >= 3 ? r.ReadInt32() : 0;
