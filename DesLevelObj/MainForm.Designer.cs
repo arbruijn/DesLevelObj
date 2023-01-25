@@ -42,6 +42,10 @@
             this.btnOutDir = new System.Windows.Forms.Button();
             this.txtOutDir = new System.Windows.Forms.TextBox();
             this.lblOutDir = new System.Windows.Forms.Label();
+            this.lblTextureRemap = new System.Windows.Forms.Label();
+            this.txtTextureRemapFile = new System.Windows.Forms.TextBox();
+            this.btnTextureRemap = new System.Windows.Forms.Button();
+            this.chkTexRemap = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // lblLevelFile
@@ -73,16 +77,16 @@
             // 
             // txtLog
             // 
-            this.txtLog.Location = new System.Drawing.Point(12, 165);
+            this.txtLog.Location = new System.Drawing.Point(12, 194);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
-            this.txtLog.Size = new System.Drawing.Size(499, 144);
+            this.txtLog.Size = new System.Drawing.Size(499, 115);
             this.txtLog.TabIndex = 13;
             // 
             // btnConvert
             // 
-            this.btnConvert.Location = new System.Drawing.Point(12, 112);
+            this.btnConvert.Location = new System.Drawing.Point(12, 142);
             this.btnConvert.Name = "btnConvert";
             this.btnConvert.Size = new System.Drawing.Size(75, 23);
             this.btnConvert.TabIndex = 11;
@@ -139,7 +143,7 @@
             // chkTexPng
             // 
             this.chkTexPng.AutoSize = true;
-            this.chkTexPng.Location = new System.Drawing.Point(13, 142);
+            this.chkTexPng.Location = new System.Drawing.Point(12, 171);
             this.chkTexPng.Name = "chkTexPng";
             this.chkTexPng.Size = new System.Drawing.Size(147, 17);
             this.chkTexPng.TabIndex = 12;
@@ -174,11 +178,54 @@
             this.lblOutDir.TabIndex = 8;
             this.lblOutDir.Text = "Output Folder";
             // 
+            // lblTextureRemap
+            // 
+            this.lblTextureRemap.AutoSize = true;
+            this.lblTextureRemap.Location = new System.Drawing.Point(9, 117);
+            this.lblTextureRemap.Name = "lblTextureRemap";
+            this.lblTextureRemap.Size = new System.Drawing.Size(80, 13);
+            this.lblTextureRemap.TabIndex = 14;
+            this.lblTextureRemap.Text = "Texture Remap";
+            // 
+            // txtTextureRemapFile
+            // 
+            this.txtTextureRemapFile.Enabled = false;
+            this.txtTextureRemapFile.Location = new System.Drawing.Point(123, 114);
+            this.txtTextureRemapFile.Name = "txtTextureRemapFile";
+            this.txtTextureRemapFile.Size = new System.Drawing.Size(354, 20);
+            this.txtTextureRemapFile.TabIndex = 15;
+            this.txtTextureRemapFile.TextChanged += new System.EventHandler(this.txtTextureRemapFile_TextChanged);
+            // 
+            // btnTextureRemap
+            // 
+            this.btnTextureRemap.Enabled = false;
+            this.btnTextureRemap.Location = new System.Drawing.Point(483, 112);
+            this.btnTextureRemap.Name = "btnTextureRemap";
+            this.btnTextureRemap.Size = new System.Drawing.Size(24, 23);
+            this.btnTextureRemap.TabIndex = 16;
+            this.btnTextureRemap.Text = "...";
+            this.btnTextureRemap.UseVisualStyleBackColor = true;
+            this.btnTextureRemap.Click += new System.EventHandler(this.btnTextureRemap_Click);
+            // 
+            // chkTexRemap
+            // 
+            this.chkTexRemap.Location = new System.Drawing.Point(100, 116);
+            this.chkTexRemap.Name = "chkTexRemap";
+            this.chkTexRemap.Size = new System.Drawing.Size(17, 17);
+            this.chkTexRemap.TabIndex = 17;
+            this.chkTexRemap.Text = "checkBox1";
+            this.chkTexRemap.UseVisualStyleBackColor = true;
+            this.chkTexRemap.CheckedChanged += new System.EventHandler(this.chkTexRemap_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(523, 321);
+            this.Controls.Add(this.chkTexRemap);
+            this.Controls.Add(this.btnTextureRemap);
+            this.Controls.Add(this.txtTextureRemapFile);
+            this.Controls.Add(this.lblTextureRemap);
             this.Controls.Add(this.btnOutDir);
             this.Controls.Add(this.txtOutDir);
             this.Controls.Add(this.lblOutDir);
@@ -197,8 +244,12 @@
             this.Text = "DesLevelObj v0.8.5";
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
+
+        private System.Windows.Forms.Label lblTextureRemap;
+        private System.Windows.Forms.TextBox txtTextureRemapFile;
+        private System.Windows.Forms.Button btnTextureRemap;
+        private System.Windows.Forms.CheckBox chkTexRemap;
 
         #endregion
 

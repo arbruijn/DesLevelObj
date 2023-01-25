@@ -10,12 +10,14 @@ using System.Windows.Forms;
 using System.IO;
 using Classic;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 
 namespace DesLevelObj
 {
     public partial class MainForm : Form
     {
         public GameFiles gameFiles;
+        public TextureRemapRoot textureRemap;
         private bool updating;
 
         public MainForm()
@@ -110,7 +112,7 @@ namespace DesLevelObj
         {
             var lvl = D3Level.Level.Read(new BinaryReader(s));
             s.Close();
-            D3LevelToObj.Convert(gameFiles, lvl, dest, dumpTex);
+            D3LevelToObj.Convert(this, gameFiles, textureRemap, lvl, dest, dumpTex);
         }
 
         private void Convert(string filename, string level, bool dumpTex)
@@ -145,7 +147,7 @@ namespace DesLevelObj
                 lvl.Read(new BinaryReader(s));
                 s.Close();
                 gameFiles.SelectPalette(lvl.palette);
-                LevelToObj.Convert(gameFiles, lvl, dest, dumpTex);
+                LevelToObj.Convert(this, gameFiles, textureRemap, lvl, dest, dumpTex);
             }
             Log("Converted level to " + dest);
         }
@@ -212,7 +214,15 @@ namespace DesLevelObj
                 txtLevelFile.Text = (string)key.GetValue("LevelFile");
                 cmbLevel.SelectedItem = (string)key.GetValue("Level");
                 txtOutDir.Text = (string)key.GetValue("OutDir");
+                chkTexRemap.Checked = (int)key.GetValue("TexRemap", 0) != 0;
+                txtTextureRemapFile.Text = (string)key.GetValue("TexureRemapFile");
                 chkTexPng.Checked = (int)key.GetValue("TexPng", 0) != 0;
+                
+                txtTextureRemapFile.Enabled = chkTexRemap.Checked;
+                btnTextureRemap.Enabled = chkTexRemap.Checked;
+                
+                LoadTextureRemapJson();
+                
                 updating = false;
             }
         }
@@ -226,6 +236,8 @@ namespace DesLevelObj
             key.SetValue("LevelFile", txtLevelFile.Text);
             key.SetValue("Level", cmbLevel.SelectedItem?.ToString() ?? "");
             key.SetValue("OutDir", txtOutDir.Text);
+            key.SetValue("TexRemap", chkTexRemap.Checked ? 1 : 0);
+            key.SetValue("TexureRemapFile", txtTextureRemapFile.Text);
             key.SetValue("TexPng", chkTexPng.Checked ? 1 : 0);
         }
 
@@ -254,6 +266,65 @@ namespace DesLevelObj
         private void cmbLevel_SelectedIndexChanged(object sender, EventArgs e)
         {
             SaveAll();
+        }
+
+        private void chkTexRemap_CheckedChanged(object sender, EventArgs e)
+        {
+            txtTextureRemapFile.Enabled = chkTexRemap.Checked;
+            btnTextureRemap.Enabled = chkTexRemap.Checked;
+            LoadTextureRemapJson();
+            SaveAll();
+        }
+
+        private void txtTextureRemapFile_TextChanged(object sender, EventArgs e)
+        {
+            SaveAll();
+        }
+        
+        private void btnTextureRemap_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "Json Files (*.json)|*.json";
+                var cur = txtTextureRemapFile.Text;
+                if (cur != "")
+                {
+                    if (!Directory.Exists(cur))
+                        cur = Path.GetDirectoryName(cur);
+                    openFileDialog.InitialDirectory = cur;
+                }
+                else if (gameFiles != null)
+                {
+                    openFileDialog.InitialDirectory = gameFiles.dir;
+                }
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    txtTextureRemapFile.Text = openFileDialog.FileName;
+                    LoadTextureRemapJson();
+                }
+            }
+        }
+        
+        private void LoadTextureRemapJson()
+        {
+            textureRemap = null;
+            
+            Log("Texture Remap reset");
+
+            if (!chkTexRemap.Checked || string.IsNullOrEmpty(txtTextureRemapFile.Text))
+                return;
+            
+            textureRemap = JsonConvert.DeserializeObject<TextureRemapRoot>(File.ReadAllText(txtTextureRemapFile.Text));
+
+            if (textureRemap != null)
+            {
+                Log("Texture remap json loaded successfully!");
+                Log($"Texture Remap size = {textureRemap.TextureRemap.Count} - READY!");
+            }
+            else
+                Log("Texture remap json could not be parsed!");
         }
     }
 }
