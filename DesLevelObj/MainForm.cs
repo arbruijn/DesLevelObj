@@ -183,7 +183,15 @@ namespace DesLevelObj
                 Log("Cannot convert, missing game folder");
                 return;
             }
-            Convert(txtLevelFile.Text, cmbLevel.SelectedItem?.ToString(), chkTexPng.Checked);
+            
+            try
+            {
+                Convert(txtLevelFile.Text, cmbLevel.SelectedItem?.ToString(), chkTexPng.Checked);
+            }
+            catch (Exception ex)
+            {
+                Log($"Error!!! {ex}");
+            }
         }
 
         private void btnOutDir_Click(object sender, EventArgs e)
@@ -312,11 +320,35 @@ namespace DesLevelObj
             textureRemap = null;
             
             Log("Texture Remap reset");
+            
+            var textureRemapFile = txtTextureRemapFile.Text;
 
-            if (!chkTexRemap.Checked || string.IsNullOrEmpty(txtTextureRemapFile.Text))
+            if (!chkTexRemap.Checked || string.IsNullOrEmpty(textureRemapFile))
                 return;
             
-            textureRemap = JsonConvert.DeserializeObject<TextureRemapRoot>(File.ReadAllText(txtTextureRemapFile.Text));
+            if (!File.Exists(textureRemapFile))
+            {
+                Log($"Warning: file does not exist! {textureRemapFile}");
+                return;
+            }
+            
+            if (!textureRemapFile.ToLower().EndsWith(".json"))
+            {
+                Log($"Warning: file must be .json! {textureRemapFile}");
+                return;
+            }
+            
+            try
+            {
+                var textureRemapFileContents = File.ReadAllText(textureRemapFile);
+                
+                if (!string.IsNullOrEmpty(textureRemapFileContents))
+                    textureRemap = JsonConvert.DeserializeObject<TextureRemapRoot>(textureRemapFileContents);
+            }
+            catch (Exception e)
+            {
+                Log($"Error!!! {e}");
+            }
 
             if (textureRemap != null)
             {
