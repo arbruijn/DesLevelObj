@@ -52,7 +52,7 @@ namespace DesLevelObj
             WritePng(fn, img, w, h);
         }
 
-        public static void Convert(GameFiles gameFiles, D3Level.Level lvl, string outName, bool dumpTex)
+        public static void Convert(MainForm mainForm, GameFiles gameFiles, TextureRemapRoot textureRemap, D3Level.Level lvl, string outName, bool dumpTex)
         {
             var rooms = lvl.rooms;
             var lvlTexSet = new HashSet<int>();
@@ -137,13 +137,27 @@ namespace DesLevelObj
                 foreach (var tex in lvlTex)
                 {
                     var matName = lvl.texture_xlate[tex].n.Replace(' ', '_');
+                    var textureName = matName;
+
+                    if (textureRemap != null && textureRemap.TextureRemap.Count > 0)
+                    {
+                        var foundRemap = textureRemap.TextureRemap.FirstOrDefault(x => x.Textures.Contains(matName, StringComparer.InvariantCultureIgnoreCase));
+
+                        if (foundRemap != null)
+                        {
+                            mainForm.Log($"Renaming texture '{matName}' to '{foundRemap.RemapTo.Material}', '{foundRemap.RemapTo.Texture}'...");
+                            matName = foundRemap.RemapTo.Material;
+                            textureName = foundRemap.RemapTo.Texture;
+                        }
+                    }
+
                     fmtl.WriteLine("newmtl " + matName);
                     fmtl.WriteLine("illum 2");
                     fmtl.WriteLine("Kd 1.00 1.00 1.00");
                     fmtl.WriteLine("Ka 0.00 0.00 0.00");
                     fmtl.WriteLine("Ks 0.00 0.00 0.00");
                     fmtl.WriteLine("d 1.0");
-                    fmtl.WriteLine("map_Kd " + matName + ".png");
+                    fmtl.WriteLine("map_Kd " + textureName + ".png");
                     if (dumpTex && texData.TryGetValue(lvl.texture_xlate[tex].n, out var texInfo))
                     {
                         bool vclip = texInfo.filename.EndsWith(".oaf", StringComparison.OrdinalIgnoreCase);
@@ -154,7 +168,7 @@ namespace DesLevelObj
                                 var r = new BinaryReader(s);
                                 if (vclip)
                                     r.BaseStream.Position += 7; // skip vclip header
-                                D3Level.Bitmap.Read(r).WritePNG(Path.Combine(outDir, matName + ".png"));
+                                D3Level.Bitmap.Read(r).WritePNG(Path.Combine(outDir, textureName + ".png"));
                             }
                         }
                         catch (Exception)

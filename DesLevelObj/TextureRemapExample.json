@@ -1,0 +1,39 @@
+{
+  "TextureRemap": [
+    {
+      "Textures": [
+        "brig001",
+        "brig002",
+        "brig003",
+        "brig004"
+      ],
+      "RemapTo": {
+        "Material": "MI_Metal_Brown_Scratched_001",
+        "Texture": "T_Metal_Brown_Scratched_001_D"
+      }
+    },
+    {
+      "Textures": [
+        "ceil001",
+        "ceil015",
+        "ceil016",
+        "ceil017",
+        "ceil019"
+      ],
+      "RemapTo": {
+        "Material": "MI_Stone_Gray_001",
+        "Texture": "T_Stone_Gray_001_D"
+      }
+    },
+    {
+      "Textures": [
+        "ceil014",
+        "ceil018"
+      ],
+      "RemapTo": {
+        "Material": "MI_Stone_Gray_002",
+        "Texture": "T_Stone_Gray_002_D"
+      }
+    }
+  ]
+}

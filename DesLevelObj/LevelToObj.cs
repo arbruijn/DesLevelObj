@@ -48,7 +48,7 @@ namespace DesLevelObj
             WritePng(fn, img, w, h);
         }
 
-        public static void Convert(GameFiles gameFiles, ClassicLevel lvl, string outName, bool dumpTex)
+        public static void Convert(MainForm mainForm, GameFiles gameFiles, TextureRemapRoot textureRemap, ClassicLevel lvl, string outName, bool dumpTex)
         {
             var mine = lvl.mine;
             var sides = new List<Side>();
@@ -92,6 +92,7 @@ namespace DesLevelObj
                 {
                     PigBitmap bmp;
                     string matName;
+
                     if (tex < gameFiles.data.Textures.Length)
                     {
                         var bmpIdx = gameFiles.data.Textures[tex].index - 1;
@@ -103,15 +104,30 @@ namespace DesLevelObj
                         bmp = null;
                         matName = "texture" + tex;
                     }
+
+                    var textureName = matName;
+
+                    if (textureRemap != null && textureRemap.TextureRemap.Count > 0)
+                    {
+                        var foundRemap = textureRemap.TextureRemap.FirstOrDefault(x => x.Textures.Contains(matName, StringComparer.InvariantCultureIgnoreCase));
+
+                        if (foundRemap != null)
+                        {
+                            mainForm.Log($"Renaming texture '{matName}' to '{foundRemap.RemapTo.Material}', '{foundRemap.RemapTo.Texture}'...");
+                            matName = foundRemap.RemapTo.Material;
+                            textureName = foundRemap.RemapTo.Texture;
+                        }
+                    }
+
                     fmtl.WriteLine("newmtl " + matName);
                     fmtl.WriteLine("illum 2");
                     fmtl.WriteLine("Kd 1.00 1.00 1.00");
                     fmtl.WriteLine("Ka 0.00 0.00 0.00");
                     fmtl.WriteLine("Ks 0.00 0.00 0.00");
                     fmtl.WriteLine("d 1.0");
-                    fmtl.WriteLine("map_Kd " + matName + ".png");
+                    fmtl.WriteLine("map_Kd " + textureName + ".png");
                     if (dumpTex && bmp != null)
-                        WritePigBitmapToPng(Path.Combine(outDir, matName + ".png"), gameFiles.pal, gameFiles.pig, bmp);
+                        WritePigBitmapToPng(Path.Combine(outDir, textureName + ".png"), gameFiles.pal, gameFiles.pig, bmp);
 
                     f.WriteLine("usemtl " + matName);
                     f.WriteLine("s off");
