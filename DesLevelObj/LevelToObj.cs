@@ -48,6 +48,14 @@ namespace DesLevelObj
             WritePng(fn, img, w, h);
         }
 
+        public static float DistSquared(vms_vector a, vms_vector b)
+        {
+            float dx = a.x.ToFloat() - b.x.ToFloat();
+            float dy = a.y.ToFloat() - b.y.ToFloat();
+            float dz = a.z.ToFloat() - b.z.ToFloat();
+            return dx * dx + dy * dy + dz * dz;
+        }
+
         public static void Convert(MainForm mainForm, GameFiles gameFiles, TextureRemapRoot textureRemap, ClassicLevel lvl, string outName, bool dumpTex)
         {
             var mine = lvl.mine;
@@ -138,13 +146,22 @@ namespace DesLevelObj
                         var segIdx = sideSegs[i];
                         var sideNum = sideNums[i];
                         var verts = new int[4][];
+                        var vertStrs = new string[4];
                         for (int j = 0; j < 4; j++)
                         {
                             verts[j] = new int[2];
                             verts[j][0] = segments[segIdx].verts[Segment.Side_to_verts[sideNum, j]];
                             verts[j][1] = i * 4 + j;
+                            vertStrs[j] = (verts[j][0] + 1) + "/" + (verts[j][1] + 1);
                         }
-                        f.WriteLine("f " + string.Join(" ", verts.Reverse().Select(v => (v[0] + 1) + "/" + (v[1] + 1))));
+                        if (DistSquared(mine.Vertices[verts[0][0]], mine.Vertices[verts[2][0]]) >
+                            DistSquared(mine.Vertices[verts[1][0]], mine.Vertices[verts[3][0]])) {
+                            f.WriteLine("f " + vertStrs[3] + " " + vertStrs[1] + " " + vertStrs[0]);
+                            f.WriteLine("f " + vertStrs[3] + " " + vertStrs[2] + " " + vertStrs[1]);
+                        } else {
+                            f.WriteLine("f " + vertStrs[2] + " " + vertStrs[1] + " " + vertStrs[0]);
+                            f.WriteLine("f " + vertStrs[3] + " " + vertStrs[2] + " " + vertStrs[0]);
+                        }
                     }
                 }
             }
