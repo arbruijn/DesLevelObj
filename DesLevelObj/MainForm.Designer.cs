@@ -242,7 +242,7 @@
             this.Controls.Add(this.txtLevelFile);
             this.Controls.Add(this.lblLevelFile);
             this.Name = "MainForm";
-            this.Text = "DesLevelObj v1.1.0";
+            this.Text = "DesLevelObj v1.1.1";
             this.ResumeLayout(false);
             this.PerformLayout();
         }
